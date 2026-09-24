@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import time
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
@@ -10,11 +11,50 @@ from meme_engine import MemeEngine
 from stream import VideoStream
 from virtual_camera import VirtualCameraOutput
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def app_dir():
+    # For PyInstaller --onefile use the executable directory; for source use this file's directory.
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(os.path.abspath(sys.executable))
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+BASE_DIR = app_dir()
 CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
+BUNDLE_DIR = getattr(sys, "_MEIPASS", BASE_DIR)
 
 
 def load_config():
+    if not os.path.exists(CONFIG_PATH):
+        bundled = os.path.join(BUNDLE_DIR, "config.json")
+        if os.path.exists(bundled):
+            import shutil
+            try:
+                shutil.copy2(bundled, CONFIG_PATH)
+            except OSError:
+                pass
+    if not os.path.exists(CONFIG_PATH):
+        default = {
+            "stream_url": "",
+            "camera_index": 0,
+            "width": 1280,
+            "height": 720,
+            "fps": 30,
+            "expression_threshold": 0.55,
+            "cooldown_seconds": 1.2,
+            "overlay_duration_seconds": 1.8,
+            "virtual_camera": False,
+            "flip": False,
+            "expressions": {
+                "happy": "memes/happy.png",
+                "surprised": "memes/surprised.png",
+                "angry": "memes/angry.png",
+                "sad": "memes/sad.png"
+            }
+        }
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(default, f, indent=2, ensure_ascii=False)
+        return default
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -104,6 +144,7 @@ class MemeCamApp:
         self.config["virtual_camera"] = self.virtual_var.get()
         self.config["flip"] = self.flip_var.get()
         self.config["expressions"] = {k: v.get().strip() for k, v in self.labels.items()}
+        os.makedirs(BASE_DIR, exist_ok=True)
         with open(CONFIG_PATH, "w", encoding="utf-8") as f:
             json.dump(self.config, f, indent=2, ensure_ascii=False)
         self.status.set("Ustawienia zapisane.")
