@@ -1,0 +1,18 @@
+{
+  "stream_url": "",
+  "camera_index": 0,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "expression_threshold": 0.55,
+  "cooldown_seconds": 1.2,
+  "overlay_duration_seconds": 1.8,
+  "virtual_camera": false,
+  "flip": false,
+  "expressions": {
+    "happy": "memes/happy.png",
+    "surprised": "memes/surprised.png",
+    "angry": "memes/angry.png",
+    "sad": "memes/sad.png"
+  }
+}
