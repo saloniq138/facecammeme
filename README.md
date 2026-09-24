@@ -7,7 +7,10 @@ MemeCam is a Windows Python application that reads a camera/video stream, detect
 - HTTP/MJPEG, RTSP and local video-file input streams
 - Optional direct webcam input with camera index
 - Local face/expression detection using MediaPipe + OpenCV
-- Happy, surprised, angry, sad and neutral expression heuristics
+- Richer facial geometry analysis inspired by the feature-scoring approach in `make_me_a_meme`
+- Hand detection and raised-hand gesture signal
+- Happy, surprised, angry, sad and neutral expression scoring
+- Face-relative meme overlays that follow the detected face
 - Configurable image overlays from `memes/`
 - Per-expression cooldown
 - GUI built with Tkinter
@@ -29,6 +32,12 @@ python main.py
 Enter your stream URL, for example `http://127.0.0.1:8080/video` or `rtsp://user:password@host:554/stream`.
 
 For a local webcam, leave the URL empty and select a camera index.
+
+## Expression + meme matching
+
+MemeCam now uses more facial landmarks/features instead of a single hard threshold. Eye openness, eyebrow position, mouth geometry, smile signal and hand gestures are combined into a confidence score. When an expression crosses the configured threshold, its meme is shown over the detected face for the configured duration.
+
+Transparent PNGs work especially well because the alpha channel is preserved when the meme is placed over the face.
 
 ## Virtual camera
 
