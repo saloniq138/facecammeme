@@ -26,7 +26,7 @@ jobs:
         run: python -m compileall main.py stream.py meme_engine.py virtual_camera.py
 
       - name: Build EXE
-        run: pyinstaller --noconfirm --clean --windowed --name MemeCam --collect-all mediapipe --collect-all pyvirtualcam main.py
+        run: pyinstaller --noconfirm --clean --windowed --name MemeCam --collect-all mediapipe --collect-all pyvirtualcam --add-data "config.json;." main.py
 
       - name: Copy runtime files
         shell: pwsh
