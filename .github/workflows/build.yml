@@ -1,0 +1,45 @@
+name: Build MemeCam
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Syntax check
+        run: python -m compileall main.py stream.py meme_engine.py virtual_camera.py
+
+      - name: Build EXE
+        run: pyinstaller --noconfirm --clean --windowed --name MemeCam main.py
+
+      - name: Copy runtime files
+        shell: pwsh
+        run: |
+          Copy-Item config.json dist\MemeCam\config.json
+          New-Item -ItemType Directory -Force dist\MemeCam\memes | Out-Null
+
+      - name: Package
+        shell: pwsh
+        run: Compress-Archive -Path dist\MemeCam\* -DestinationPath MemeCam-Windows.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MemeCam-Windows
+          path: MemeCam-Windows.zip
