@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import sys
 import time
 import tkinter as tk
@@ -20,8 +21,11 @@ def app_dir():
 
 
 BASE_DIR = app_dir()
-CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
+USER_DIR = os.path.join(os.getenv("APPDATA", BASE_DIR), "FaceCamMeme")
+REACTIONS_DIR = os.path.join(USER_DIR, "reactions")
+CONFIG_PATH = os.path.join(USER_DIR, "config.json")
 BUNDLE_DIR = getattr(sys, "_MEIPASS", BASE_DIR)
+os.makedirs(REACTIONS_DIR, exist_ok=True)
 
 
 def load_config():
@@ -34,6 +38,7 @@ def load_config():
             except OSError:
                 pass
     if not os.path.exists(CONFIG_PATH):
+        os.makedirs(USER_DIR, exist_ok=True)
         default = {
             "stream_url": "",
             "camera_index": 0,
@@ -63,7 +68,7 @@ class MemeCamApp:
     def __init__(self, root):
         self.root = root
         self.root.title("MemeCam")
-        self.root.geometry("680x470")
+        self.root.geometry("760x600")
         self.root.resizable(False, False)
         self.config = load_config()
         self.running = False
@@ -129,11 +134,27 @@ class MemeCamApp:
 
     def choose_meme(self, expression):
         path = filedialog.askopenfilename(
-            title=f"Wybierz meme dla {expression}",
+            title=f"Wybierz własną reakcję dla {expression}",
             filetypes=[("Obrazy", "*.png *.jpg *.jpeg *.webp"), ("Wszystkie", "*.*")]
         )
-        if path:
-            self.labels[expression].set(path)
+        if not path:
+            return
+        try:
+            os.makedirs(REACTIONS_DIR, exist_ok=True)
+            filename = os.path.basename(path)
+            stem, ext = os.path.splitext(filename)
+            destination = os.path.join(REACTIONS_DIR, filename)
+            counter = 1
+            while os.path.exists(destination) and os.path.abspath(destination) != os.path.abspath(path):
+                destination = os.path.join(REACTIONS_DIR, f"{stem}_{counter}{ext}")
+                counter += 1
+            if os.path.abspath(path) != os.path.abspath(destination):
+                shutil.copy2(path, destination)
+            self.labels[expression].set(destination)
+            self.save_config()
+            self.status.set(f"Dodano własny meme dla: {expression}")
+        except OSError as e:
+            messagebox.showerror("MemeCam", f"Nie udało się dodać obrazka:\n{e}")
 
     def save_config(self):
         self.config["stream_url"] = self.url.get().strip()
